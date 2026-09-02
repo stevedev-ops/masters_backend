@@ -117,12 +117,13 @@ if not DEBUG:
     SECURE_HSTS_PRELOAD = True
 
 # CORS Origin Protection (Strict Whitelisting to prevent Cross-Origin Data Theft)
-CORS_ALLOW_ALL_ORIGINS = False
+CORS_ALLOW_ALL_ORIGINS = os.environ.get('CORS_ALLOW_ALL_ORIGINS', 'False').lower() in ('true', '1', 'yes')
 CORS_ALLOW_CREDENTIALS = True
 
 cors_origins_env = os.environ.get('CORS_ALLOWED_ORIGINS', '')
 if cors_origins_env:
-    CORS_ALLOWED_ORIGINS = [o.strip() for o in cors_origins_env.split(',') if o.strip()]
+    # Strip any trailing slashes automatically to comply with RFC 6454 and avoid django-cors-headers E014
+    CORS_ALLOWED_ORIGINS = [o.strip().rstrip('/') for o in cors_origins_env.split(',') if o.strip()]
 else:
     CORS_ALLOWED_ORIGINS = [
         'http://localhost:5173',
