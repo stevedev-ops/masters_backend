@@ -1,0 +1,23 @@
+databases:
+  - name: masters-postgres
+    databaseName: masters_db
+    user: masters_admin
+    plan: starter
+services:
+  - type: web
+    name: masters-api
+    runtime: python
+    plan: starter
+    buildCommand: ./build.sh
+    startCommand: gunicorn masters_core.wsgi:application
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: masters-postgres
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: ALLOWED_HOSTS
+        value: ".onrender.com,localhost,127.0.0.1"
