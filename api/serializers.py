@@ -62,6 +62,8 @@ class TransactionSerializer(serializers.ModelSerializer):
     paymentMethod = serializers.CharField(source='payment_method', required=False)
     barberTipPaid = serializers.BooleanField(source='barber_tip_paid', required=False)
     massageTipPaid = serializers.BooleanField(source='massage_tip_paid', required=False)
+    barberCommissionPaid = serializers.BooleanField(source='barber_commission_paid', required=False)
+    massageCommissionPaid = serializers.BooleanField(source='massage_commission_paid', required=False)
     notes = SanitizedCharField(required=False, allow_blank=True)
 
     class Meta:
@@ -72,7 +74,7 @@ class TransactionSerializer(serializers.ModelSerializer):
             'barberId', 'barberName',
             'massageTherapistId', 'massageTherapistName',
             'serviceTotal', 'barberTip', 'massageTip', 'grandTotal',
-            'paymentMethod', 'barberTipPaid', 'massageTipPaid', 'notes'
+            'paymentMethod', 'barberTipPaid', 'massageTipPaid', 'barberCommissionPaid', 'massageCommissionPaid', 'notes'
         ]
 
     def validate(self, attrs):

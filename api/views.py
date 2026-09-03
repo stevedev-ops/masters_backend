@@ -53,6 +53,31 @@ class StaffViewSet(viewsets.ModelViewSet):
         })
 
     @action(detail=True, methods=['post'], permission_classes=[IsAdminUser])
+    def pay_all_commissions(self, request, pk=None):
+        staff = self.get_object()
+        txs_barber = Transaction.objects.filter(barber_id=staff.id, barber_commission_paid=False)
+        txs_barber.update(barber_commission_paid=True)
+
+        txs_massage = Transaction.objects.filter(massage_therapist_id=staff.id, massage_commission_paid=False)
+        txs_massage.update(massage_commission_paid=True)
+
+        return Response({
+            'status': 'success',
+            'message': f'All pending 40% commissions paid for {staff.name}'
+        })
+
+    @action(detail=True, methods=['post'], permission_classes=[IsAdminUser])
+    def pay_all_payouts(self, request, pk=None):
+        staff = self.get_object()
+        Transaction.objects.filter(barber_id=staff.id).update(barber_tip_paid=True, barber_commission_paid=True)
+        Transaction.objects.filter(massage_therapist_id=staff.id).update(massage_tip_paid=True, massage_commission_paid=True)
+
+        return Response({
+            'status': 'success',
+            'message': f'All pending commissions and tips cleared for {staff.name}'
+        })
+
+    @action(detail=True, methods=['post'], permission_classes=[IsAdminUser])
     def toggle_active(self, request, pk=None):
         staff = self.get_object()
         staff.active = not staff.active
@@ -124,6 +149,27 @@ class TransactionViewSet(viewsets.ModelViewSet):
             tx.massage_tip_paid = not tx.massage_tip_paid
         else:
             return Response({'error': 'Invalid tipType. Must be barber or massage.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        tx.save()
+        return Response(TransactionSerializer(tx, context={'request': request}).data)
+
+    @action(detail=True, methods=['post'])
+    def toggle_commission(self, request, pk=None):
+        if not is_boss_user(request.user):
+            return Response(
+                {'error': 'Permission denied. Only the Boss can mark commissions as paid/unpaid.'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        tx = self.get_object()
+        role = request.data.get('role')
+
+        if role == 'barber':
+            tx.barber_commission_paid = not tx.barber_commission_paid
+        elif role == 'massage':
+            tx.massage_commission_paid = not tx.massage_commission_paid
+        else:
+            return Response({'error': 'Invalid role. Must be barber or massage.'}, status=status.HTTP_400_BAD_REQUEST)
 
         tx.save()
         return Response(TransactionSerializer(tx, context={'request': request}).data)

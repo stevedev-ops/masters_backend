@@ -87,6 +87,8 @@ class Transaction(models.Model):
     payment_method = models.CharField(max_length=50, choices=PAYMENT_CHOICES, default='M-Pesa')
     barber_tip_paid = models.BooleanField(default=False)
     massage_tip_paid = models.BooleanField(default=False)
+    barber_commission_paid = models.BooleanField(default=False)
+    massage_commission_paid = models.BooleanField(default=False)
     notes = models.TextField(blank=True)
 
     class Meta:
