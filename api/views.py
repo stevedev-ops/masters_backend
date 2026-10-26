@@ -38,6 +38,52 @@ class StaffViewSet(viewsets.ModelViewSet):
             return [IsAuthenticated()]
         return [IsAdminUser()]
 
+    def perform_create(self, serializer):
+        name = self.request.data.get('name', '').strip()
+        custom_username = self.request.data.get('username', '').strip()
+        custom_password = self.request.data.get('password', '').strip() or 'masters123'
+
+        if custom_username:
+            username = custom_username.lower()
+        else:
+            first_name = name.split()[0].lower() if name else 'worker'
+            base = ''.join(c for c in first_name if c.isalnum()) or 'worker'
+            username = base
+            counter = 1
+            while User.objects.filter(username=username).exists():
+                username = f"{base}{counter}"
+                counter += 1
+
+        user, _ = User.objects.get_or_create(
+            username=username,
+            defaults={
+                'email': f"{username}@themasters.co.ke",
+                'first_name': name,
+            }
+        )
+        user.set_password(custom_password)
+        user.is_staff = False
+        user.is_superuser = False
+        user.save()
+        Token.objects.get_or_create(user=user)
+
+        serializer.save(user=user)
+
+    def perform_update(self, serializer):
+        staff = serializer.save()
+        new_password = self.request.data.get('password', '').strip()
+        if new_password and staff.user:
+            staff.user.set_password(new_password)
+            staff.user.save()
+        if staff.user and staff.name:
+            staff.user.first_name = staff.name
+            staff.user.save()
+
+    def perform_destroy(self, instance):
+        if instance.user and not (instance.user.is_superuser or instance.user.username.lower() == 'admin'):
+            instance.user.delete()
+        instance.delete()
+
     @action(detail=True, methods=['post'], permission_classes=[IsAdminUser])
     def pay_all_tips(self, request, pk=None):
         staff = self.get_object()

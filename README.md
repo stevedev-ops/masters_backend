@@ -8,8 +8,8 @@ A clean, production-ready Django REST Framework backend engineered for **The Mas
 
 | Account | Username | Password | Role & Permissions |
 | :--- | :--- | :--- | :--- |
-| **Boss / Admin** | `admin` | `masters2026!` | Full Executive Access, Tip Payoffs, Pricing, Expenses Audit |
-| **Shee (Worker)** | `shee` | `masters123` | Staff Portal, Dual Service (Barber & Spa) Tips, Expense Logger |
+| **Boss / Admin** | `admin` | `masters2026!` | Full Executive Access, Team Management, Pricing, Expenses Audit |
+| **Staff Members** | *(Added by Admin)* | `masters123` (or custom) | Admin enrolls staff directly via Executive Portal Staff Management |
 
 ---
 

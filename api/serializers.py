@@ -38,11 +38,12 @@ class StaffSerializer(serializers.ModelSerializer):
     name = SanitizedCharField(max_length=120)
     phone = SanitizedCharField(required=False, allow_blank=True)
     title = SanitizedCharField(required=False, allow_blank=True)
+    username = serializers.CharField(source='user.username', read_only=True)
     mustChangePassword = serializers.BooleanField(source='must_change_password', read_only=True)
 
     class Meta:
         model = Staff
-        fields = ['id', 'name', 'role', 'phone', 'title', 'active', 'mustChangePassword']
+        fields = ['id', 'name', 'role', 'phone', 'title', 'active', 'username', 'mustChangePassword']
 
 class TransactionSerializer(serializers.ModelSerializer):
     clientName = SanitizedCharField(source='client_name', required=False, allow_blank=True)

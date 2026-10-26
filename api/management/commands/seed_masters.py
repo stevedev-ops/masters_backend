@@ -78,32 +78,9 @@ class Command(BaseCommand):
                 }
             )
 
-        self.stdout.write('Seeding worker Shee and authentication user account...')
-        staff_data = [
-            {'id': 'stf-shee', 'username': 'shee', 'name': 'Shee', 'role': 'Dual', 'phone': '+254 700 000 000', 'active': True, 'title': 'Stylist & Spa Specialist'},
-        ]
+        self.stdout.write('Staff roster initialized empty — admin enters workers directly via executive portal...')
+        staff_data = []
         for st in staff_data:
-            u, _ = User.objects.get_or_create(
-                username=st['username'],
-                defaults={
-                    'email': f"{st['username']}@themasters.co.ke",
-                    'first_name': st['name'],
-                }
-            )
-            u.set_password('masters123')
-            u.save()
-            Token.objects.get_or_create(user=u)
-            Staff.objects.get_or_create(
-                id=st['id'],
-                defaults={
-                    'user': u,
-                    'name': st['name'],
-                    'role': st['role'],
-                    'phone': st['phone'],
-                    'active': st['active'],
-                    'title': st['title'],
-                    'must_change_password': False
-                }
-            )
+            pass
 
         self.stdout.write(self.style.SUCCESS('Successfully verified/seeded The Masters data safely!'))
