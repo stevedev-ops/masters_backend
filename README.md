@@ -9,11 +9,7 @@ A clean, production-ready Django REST Framework backend engineered for **The Mas
 | Account | Username | Password | Role & Permissions |
 | :--- | :--- | :--- | :--- |
 | **Boss / Admin** | `admin` | `masters2026!` | Full Executive Access, Tip Payoffs, Pricing, Expenses Audit |
-| **James (Barber)** | `james` | `masters123` | Staff Portal, Private Barber Tips, Expense Logger |
-| **David (Barber)** | `david` | `masters123` | Staff Portal, Private Barber Tips, Expense Logger |
-| **Sarah (Spa)** | `sarah` | `masters123` | Staff Portal, Private Massage Tips, Expense Logger |
-| **Grace (Spa)** | `grace` | `masters123` | Staff Portal, Private Massage Tips, Expense Logger |
-| **Alex (Dual)** | `alex` | `masters123` | Staff Portal, Dual Service Tips, Expense Logger |
+| **Shee (Worker)** | `shee` | `masters123` | Staff Portal, Dual Service (Barber & Spa) Tips, Expense Logger |
 
 ---
 

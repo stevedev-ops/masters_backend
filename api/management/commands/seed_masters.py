@@ -3,10 +3,10 @@ from django.utils import timezone
 from datetime import timedelta
 from django.contrib.auth.models import User
 from rest_framework.authtoken.models import Token
-from api.models import Service, Staff, Transaction, ClosingRecord, Expense
+from api.models import Service, Staff, Transaction, ClosingRecord, Expense, Appointment
 
 class Command(BaseCommand):
-    help = 'Seeds initial services, staff members, user credentials, demo transactions, and expenses for The Masters safely'
+    help = 'Seeds initial services, worker Shee, and user credentials for The Masters safely'
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -29,6 +29,7 @@ class Command(BaseCommand):
 
         if options['force']:
             self.stdout.write(self.style.WARNING('FORCE RESET REQUESTED: Clearing existing records...'))
+            Appointment.objects.all().delete()
             Expense.objects.all().delete()
             ClosingRecord.objects.all().delete()
             Transaction.objects.all().delete()
@@ -77,13 +78,9 @@ class Command(BaseCommand):
                 }
             )
 
-        self.stdout.write('Seeding staff members and authentication user accounts...')
+        self.stdout.write('Seeding worker Shee and authentication user account...')
         staff_data = [
-            {'id': 'stf-1', 'username': 'james', 'name': 'James', 'role': 'Barber', 'phone': '+254 712 345 678', 'active': True, 'title': 'Master Barber & Stylist'},
-            {'id': 'stf-2', 'username': 'david', 'name': 'David', 'role': 'Barber', 'phone': '+254 722 987 654', 'active': True, 'title': 'Senior Barber'},
-            {'id': 'stf-3', 'username': 'sarah', 'name': 'Sarah', 'role': 'Massage Therapist', 'phone': '+254 733 112 233', 'active': True, 'title': 'Lead Spa Therapist'},
-            {'id': 'stf-4', 'username': 'grace', 'name': 'Grace', 'role': 'Massage Therapist', 'phone': '+254 744 556 677', 'active': True, 'title': 'Hot Stone Specialist'},
-            {'id': 'stf-5', 'username': 'alex', 'name': 'Alex', 'role': 'Dual', 'phone': '+254 755 889 900', 'active': True, 'title': 'Grooming & Bodywork Specialist'},
+            {'id': 'stf-shee', 'username': 'shee', 'name': 'Shee', 'role': 'Dual', 'phone': '+254 700 000 000', 'active': True, 'title': 'Stylist & Spa Specialist'},
         ]
         for st in staff_data:
             u, _ = User.objects.get_or_create(
@@ -104,39 +101,9 @@ class Command(BaseCommand):
                     'role': st['role'],
                     'phone': st['phone'],
                     'active': st['active'],
-                    'title': st['title']
+                    'title': st['title'],
+                    'must_change_password': False
                 }
             )
-
-        now = timezone.now()
-        if not Transaction.objects.exists():
-            self.stdout.write('Seeding initial demo transactions...')
-            txs_data = [
-                {
-                    'id': 'tx-101',
-                    'timestamp': now - timedelta(hours=3),
-                    'client_name': 'Michael K.',
-                    'services': [
-                        {'id': 'srv-9', 'name': 'Hot Stone Massage', 'price': 2700, 'category': 'Massage & Bodywork'},
-                        {'id': 'srv-1', 'name': 'Shaving', 'price': 250, 'category': 'Barber'}
-                    ],
-                    'logged_by_staff_id': 'stf-3',
-                    'logged_by_staff_name': 'Sarah',
-                    'barber_id': 'stf-1',
-                    'barber_name': 'James',
-                    'massage_therapist_id': 'stf-3',
-                    'massage_therapist_name': 'Sarah',
-                    'service_total': 2950,
-                    'barber_tip': 150,
-                    'massage_tip': 350,
-                    'grand_total': 3450,
-                    'payment_method': 'M-Pesa',
-                    'barber_tip_paid': True,
-                    'massage_tip_paid': False,
-                    'notes': 'Hot stone therapy + beard trim.'
-                }
-            ]
-            for tx in txs_data:
-                Transaction.objects.get_or_create(id=tx['id'], defaults=tx)
 
         self.stdout.write(self.style.SUCCESS('Successfully verified/seeded The Masters data safely!'))
