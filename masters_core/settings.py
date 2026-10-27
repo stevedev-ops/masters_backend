@@ -1,3 +1,5 @@
+import re
+from urllib.parse import urlparse
 import os
 from pathlib import Path
 import dj_database_url
@@ -121,16 +123,26 @@ CORS_ALLOW_ALL_ORIGINS = os.environ.get('CORS_ALLOW_ALL_ORIGINS', 'False').lower
 CORS_ALLOW_CREDENTIALS = True
 
 cors_origins_env = os.environ.get('CORS_ALLOWED_ORIGINS', '')
+parsed_origins = []
 if cors_origins_env:
-    # Strip any trailing slashes automatically to comply with RFC 6454 and avoid django-cors-headers E014
-    CORS_ALLOWED_ORIGINS = [o.strip().rstrip('/') for o in cors_origins_env.split(',') if o.strip()]
-else:
-    CORS_ALLOWED_ORIGINS = [
-        'http://localhost:5173',
-        'http://127.0.0.1:5173',
-        'http://localhost:3000',
-        'http://127.0.0.1:3000',
-    ]
+    raw_tokens = re.split(r'[\s,]+', cors_origins_env.strip())
+    for token in raw_tokens:
+        t = token.strip()
+        if not t:
+            continue
+        if not t.startswith(('http://', 'https://')):
+            t = f'https://{t}'
+        parsed = urlparse(t)
+        clean_origin = f"{parsed.scheme}://{parsed.netloc}".rstrip('/')
+        if clean_origin and clean_origin not in parsed_origins:
+            parsed_origins.append(clean_origin)
+
+CORS_ALLOWED_ORIGINS = parsed_origins if parsed_origins else [
+    'http://localhost:5173',
+    'http://127.0.0.1:5173',
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+]
 
 CORS_ALLOWED_ORIGIN_REGEXES = [
     r"^https:\/\/.*\.onrender\.com$",
