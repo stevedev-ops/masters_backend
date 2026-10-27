@@ -46,6 +46,7 @@ class StaffSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'role', 'phone', 'title', 'active', 'username', 'mustChangePassword']
 
 class TransactionSerializer(serializers.ModelSerializer):
+    id = serializers.CharField(required=False, max_length=50)
     clientName = SanitizedCharField(source='client_name', required=False, allow_blank=True)
     loggedByStaffId = serializers.CharField(source='logged_by_staff_id', required=False, allow_null=True)
     loggedByStaffName = serializers.CharField(source='logged_by_staff_name', required=False, allow_null=True)
@@ -124,6 +125,7 @@ class TransactionSerializer(serializers.ModelSerializer):
         return data
 
 class ClosingRecordSerializer(serializers.ModelSerializer):
+    id = serializers.CharField(required=False, max_length=50)
     expectedCash = serializers.FloatField(source='expected_cash', required=False, min_value=0.0)
     actualCash = serializers.FloatField(source='actual_cash', required=False, min_value=0.0)
     cashDiff = serializers.FloatField(source='cash_diff', required=False)
@@ -146,6 +148,7 @@ class ClosingRecordSerializer(serializers.ModelSerializer):
         ]
 
 class ExpenseSerializer(serializers.ModelSerializer):
+    id = serializers.CharField(required=False, max_length=50)
     title = SanitizedCharField(max_length=150)
     amount = serializers.FloatField(required=True, min_value=0.01)
     paymentMethod = serializers.CharField(source='payment_method', required=False)

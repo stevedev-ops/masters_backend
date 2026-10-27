@@ -150,17 +150,33 @@ class TransactionViewSet(viewsets.ModelViewSet):
 
         return Transaction.objects.none()
 
+    def create(self, request, *args, **kwargs):
+        # Support idempotent offline-first sync across multiple devices
+        tx_id = request.data.get('id')
+        if tx_id:
+            existing = Transaction.objects.filter(id=tx_id).first()
+            if existing:
+                serializer = self.get_serializer(existing)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+        return super().create(request, *args, **kwargs)
+
     def perform_create(self, serializer):
         user = self.request.user
+        extra_kwargs = {}
+        tx_id = self.request.data.get('id')
+        if tx_id:
+            extra_kwargs['id'] = tx_id
+
         if hasattr(user, 'staff_profile') and user.staff_profile and not is_boss_user(user):
             serializer.save(
                 logged_by_staff_id=user.staff_profile.id,
                 logged_by_staff_name=user.staff_profile.name,
                 barber_tip_paid=False,
-                massage_tip_paid=False
+                massage_tip_paid=False,
+                **extra_kwargs
             )
         else:
-            serializer.save()
+            serializer.save(**extra_kwargs)
 
     def update(self, request, *args, **kwargs):
         if not is_boss_user(request.user):
@@ -225,15 +241,38 @@ class ClosingRecordViewSet(viewsets.ModelViewSet):
     serializer_class = ClosingRecordSerializer
     permission_classes = [IsAuthenticated]
 
+    def create(self, request, *args, **kwargs):
+        # Support idempotent offline-first sync across multiple devices
+        cl_id = request.data.get('id')
+        if cl_id:
+            existing = ClosingRecord.objects.filter(id=cl_id).first()
+            if existing:
+                serializer = self.get_serializer(existing)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+        return super().create(request, *args, **kwargs)
+
     def perform_create(self, serializer):
         user = self.request.user
+        local_today = timezone.localdate()
+        
+        # Enforce business rule: shift cannot be closed twice for the same day
+        if ClosingRecord.objects.filter(timestamp__date=local_today).exists() and not is_boss_user(user):
+            from rest_framework.exceptions import ValidationError
+            raise ValidationError({'error': 'Shift closing has already been submitted for today. Shift closing cannot be done twice.'})
+
+        extra_kwargs = {}
+        cl_id = self.request.data.get('id')
+        if cl_id:
+            extra_kwargs['id'] = cl_id
+
         if hasattr(user, 'staff_profile') and user.staff_profile and not is_boss_user(user):
             serializer.save(
                 closed_by_staff_id=user.staff_profile.id,
-                closed_by_staff_name=user.staff_profile.name
+                closed_by_staff_name=user.staff_profile.name,
+                **extra_kwargs
             )
         else:
-            serializer.save()
+            serializer.save(**extra_kwargs)
 
     def update(self, request, *args, **kwargs):
         if not is_boss_user(request.user):
@@ -256,15 +295,31 @@ class ExpenseViewSet(viewsets.ModelViewSet):
     serializer_class = ExpenseSerializer
     permission_classes = [IsAuthenticated]
 
+    def create(self, request, *args, **kwargs):
+        # Support idempotent offline-first sync across multiple devices
+        exp_id = request.data.get('id')
+        if exp_id:
+            existing = Expense.objects.filter(id=exp_id).first()
+            if existing:
+                serializer = self.get_serializer(existing)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+        return super().create(request, *args, **kwargs)
+
     def perform_create(self, serializer):
         user = self.request.user
+        extra_kwargs = {}
+        exp_id = self.request.data.get('id')
+        if exp_id:
+            extra_kwargs['id'] = exp_id
+
         if hasattr(user, 'staff_profile') and user.staff_profile and not is_boss_user(user):
             serializer.save(
                 logged_by_staff_id=user.staff_profile.id,
-                logged_by_staff_name=user.staff_profile.name
+                logged_by_staff_name=user.staff_profile.name,
+                **extra_kwargs
             )
         else:
-            serializer.save()
+            serializer.save(**extra_kwargs)
 
     def update(self, request, *args, **kwargs):
         if not is_boss_user(request.user):
